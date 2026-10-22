@@ -1,67 +1,17 @@
-# Codex CLI configuration for the Liara agent pack.
+# Optional project defaults for Codex. Merge with existing project settings.
+# Start Codex in this repository and trust the project for these to load.
+# See docs/en/04-providers.md for CLI launch options and activation checks.
 #
-# IMPORTANT, read this before using Codex here:
-#
-# Codex has no equivalent of Claude Code's PreToolUse hook, so
-# scripts/guard.sh DOES NOT run automatically. The deny-list protections that
-# are structural under Claude Code are, under Codex, enforced by this sandbox
-# plus the agent's discipline.
-#
-# Compensate in two ways:
-#   1. Keep the sandbox and approval policy below (or stricter).
-#   2. Pipe mutating commands through the guard manually:
-#        printf '{"tool_name":"Bash","tool_input":{"command":"%s"}}' "$CMD" \
-#          | sh scripts/guard.sh && eval "$CMD"
-#
-# Field names were current for Codex CLI ~v0.125. Verify against
-# developers.openai.com/codex if a key is rejected — they do change.
+# The pack's Claude PreToolUse hook does not run automatically in Codex.
+# AGENTS.md requires the wrapper and manual guard checks before mutations.
+# A filesystem sandbox does not make a remote hosting account read-only.
 
-# ── defaults ──────────────────────────────────────────────────────────────
-model = "gpt-5-codex"
-
-# Never "never". Writes to a live hosting account must be seen by a human.
-approval_policy = "on-request"
-
-# Filesystem writes limited to this project; network allowed because the
-# Liara CLI needs it.
-sandbox_mode = "workspace-write"
-
-[sandbox_workspace_write]
-network_access = true
-
-# AGENTS.md is the contract. Give it room — it is ~6 KB.
-project_doc_max_bytes = 32768
-
-
-# ── profiles ──────────────────────────────────────────────────────────────
-
-# Read-only investigation. Use this for "is the site up?", log reading,
-# metrics and plan lookups. It cannot change anything, which makes it the
-# right default for a beginner.
-[profiles.liara-sre]
-model = "gpt-5-codex"
 approval_policy = "on-request"
 sandbox_mode = "read-only"
+project_doc_max_bytes = 32768
 
-# Deploying and patching. Still asks before each consequential action.
-[profiles.liara-deploy]
-model = "gpt-5-codex"
-approval_policy = "on-request"
-sandbox_mode = "workspace-write"
-
-# Production work. Deliberately the most restrictive: every command is
-# confirmed, because the approval gate is not automatic here.
-[profiles.liara-prod]
-model = "gpt-5-codex"
-approval_policy = "untrusted"
-sandbox_mode = "workspace-write"
-
-
-# ── usage ─────────────────────────────────────────────────────────────────
-#   codex --profile liara-sre     "وضعیت سایت چطور است؟"
-#   codex --profile liara-deploy  "deploy to staging and verify"
-#   codex --profile liara-prod    "deploy to production"
-#
-# Codex reads AGENTS.md automatically. The role instructions in
-# .claude/agents/*.md are plain Markdown — paste the relevant one into the
-# prompt, or reference it: "follow .claude/agents/liara-sre.md".
+# Keep the user's configured model. Configuration profiles belong in user
+# configuration, not project-local .codex/config.toml, on current Codex.
+# For staging work requiring local writes and network access, use the explicit
+# CLI options in the provider guide. Production still requires the separate,
+# single-use approval granted by a human through scripts/approve.sh.

@@ -1,182 +1,236 @@
 [فارسی](../fa/04-providers.md) · **English**
 
-# 4. Running the agents on each AI provider
+# 4. Set up your coding environment
 
-The pack is deliberately plain: Markdown instructions plus POSIX shell scripts.
-Any coding agent can run it. What differs between providers is **how much is
-enforced for you** versus how much depends on the agent's discipline.
+First [install the pack in your website repository](00-installation.md).
+All paths and commands below are relative to that repository's root. Start or
+restart your coding agent there after importing the files.
 
-Read this table before choosing. It is the honest summary.
+These instructions describe **the integrations supplied by this pack**, not
+every feature a provider offers. The same six role files and scripts can be
+used elsewhere, but their Claude metadata does not automatically create
+native agents or commands in another client.
 
-| | Claude Code | Codex CLI | Cursor / Windsurf | Aider | Gemini CLI |
+| Pack integration | Claude Code | Codex CLI / IDE / desktop | Cursor / Windsurf | Aider | Gemini CLI |
 |---|---|---|---|---|---|
-| Reads `AGENTS.md` | via `CLAUDE.md` | yes, automatically | yes | with `--read` | yes |
-| Separate agent roles | **real subagents** | profiles + prompt | prompt only | prompt only | prompt only |
-| Slash commands | **yes** | no | no | no | no |
-| **Guard hook enforced** | **yes — automatic** | **no** | **no** | **no** | **no** |
-| Path permission deny | **yes** | sandbox only | no | no | no |
-| Sandbox | per-tool allowlist | **yes, strong** | no | no | limited |
+| Project instructions | `CLAUDE.md` → `AGENTS.md` | `AGENTS.md` | `AGENTS.md` / editor rules | `--read` | `GEMINI.md` import |
+| Supplied roles | six native subagents | read role by path | read role by path | `--read` role | read role by path |
+| Supplied `/liara-*` commands | yes | use plain prompts | use plain prompts | use plain prompts | use plain prompts |
+| Pack's guard hook | when merged settings are active | not wired | not wired | not wired | not wired |
 
-**The one conclusion:** `scripts/guard.sh` runs automatically **only on Claude
-Code**. Everywhere else, the destructive-command and credential protections are
-not automatic. The scripts still work; the *enforcement* does not.
+Only the Claude configuration supplied here wires `scripts/guard.sh` to
+Bash tool calls. Other providers may offer hooks, but this pack does not
+configure them. Read [known security gaps](07-security.md) before granting
+production access, including when using Claude Code.
 
-If a beginner is going to operate this, use Claude Code. That is not a
-preference — it is the only configuration where the guardrails hold without
-the agent choosing to honour them.
+## Claude Code
 
----
+1. Install or merge `CLAUDE.md`, all of `.claude/`, and the common scripts as
+   described in the installation guide. Copying only `.claude/agents/` omits
+   the hook and its permissions.
+2. If your project already has `.claude/settings.json`, preserve its entries
+   while merging the pack's `hooks.PreToolUse` and permission arrays. Keep the
+   guard command `sh "$CLAUDE_PROJECT_DIR/scripts/guard.sh"` intact.
+3. Start a fresh Claude Code session in the website repository. Follow any
+   project trust or hook review prompts, then ask it to list the six
+   `liara-*` roles and explain the contract in `AGENTS.md`.
+4. Run the installation checks in your terminal. Confirm the guard hook is
+   active in the client as well; file checks alone do not prove this.
 
-## Claude Code — fully enforced
+Then use these project commands:
 
-Nothing to configure; it is already wired.
-
-```
-/liara-setup          # first time
-/liara-status         # is the site up?
+```text
+/liara-login          # connect first; you enter the token in a real terminal
+/liara-setup          # configure your website
+/liara-status
 /liara-deploy staging
 /liara-plan
 /liara-diagnose
 /liara-report
 ```
 
-What is active:
+You can also say: "Use the liara-connect agent to help me connect staging."
+The agent must leave `sh scripts/setup.sh connect staging` for you to run.
 
-- `scripts/guard.sh` as a **PreToolUse hook on Bash** — blocks destructive
-  commands, credential reads, bare `liara` calls, unapproved production writes
-- `permissions.deny` — blocks reads of `.liara/**` and `.env`, and edits to
-  `guard.sh`, `approve.sh`, `preflight.sh`, `settings.json`
-- Five subagents with per-role tool allowlists
+On Windows, use Git Bash and ensure the shell that launches Claude can find
+`sh`. Do not rely on the hook until the checks and client activation succeed.
+See Claude's official [subagent guide](https://code.claude.com/docs/en/sub-agents)
+and [project settings](https://code.claude.com/docs/en/settings) for discovery
+and settings behavior.
 
-Verify it is really on — do this before trusting it:
+## Codex CLI, IDE and desktop
 
-```bash
-sh scripts/doctor.sh       # includes a guard self-test
-sh scripts/test-guard.sh   # full regression suite
-```
+Open the website repository as the project. Codex discovers the root
+`AGENTS.md`; start a new session and ask it to summarize the five rules and
+identify the role file it will follow. Check for an `AGENTS.override.md` that
+could replace the contract at the same directory level. See the official
+[AGENTS.md guide](https://developers.openai.com/codex/guides/agents-md/).
 
-**Windows:** hooks run via `sh` (Git Bash). If `sh` is not on PATH, **the hook
-does not run and commands are unguarded.** `doctor.sh` checks for this
-explicitly. Do not skip it.
-
----
-
-## Codex CLI — sandbox instead of hooks
-
-Codex reads `AGENTS.md` automatically. It has **no PreToolUse hook**, so
-substitute the sandbox:
+For **CLI**, start with local read-only access:
 
 ```bash
-codex --profile liara-sre     "وضعیت سایت چطور است؟"
-codex --profile liara-deploy  "deploy to staging and verify"
-codex --profile liara-prod    "deploy to production"
+codex --sandbox read-only --ask-for-approval on-request \
+  "Read AGENTS.md and .claude/agents/liara-connect.md. Explain how I connect staging; leave token entry to me."
 ```
 
-Profiles are in [`.codex/config.toml`](../../.codex/config.toml):
-
-| profile | sandbox | approval | for |
-|---|---|---|---|
-| `liara-sre` | `read-only` | on-request | monitoring, logs, plans — **cannot change anything** |
-| `liara-deploy` | `workspace-write` | on-request | deploying, patching |
-| `liara-prod` | `workspace-write` | `untrusted` (every command) | production |
-
-Use `liara-sre` as your default. A read-only sandbox is a real structural
-control, and it covers most of what a beginner needs.
-
-Invoke a role by reference:
-
-```
-follow .claude/agents/liara-sre.md and report the current status
-```
-
-Run the guard manually before a mutating command:
+For project configuration, patches or a staging deploy that requires local
+writes and network access:
 
 ```bash
-CMD='LIARA_ENV=staging sh scripts/liara.sh deploy --app my-site --path .'
-printf '{"tool_name":"Bash","tool_input":{"command":"%s"}}' "$CMD" \
-  | sh scripts/guard.sh && eval "$CMD"
+codex --sandbox workspace-write --ask-for-approval on-request \
+  -c sandbox_workspace_write.network_access=true \
+  "Follow AGENTS.md and .claude/agents/liara-onboarding.md to configure this website for staging."
 ```
 
-Field names were current for Codex CLI ~v0.125; verify at
-<https://developers.openai.com/codex> if a key is rejected.
+`on-request` allows the agent to request approval when needed; it does not
+ask before every command. Read-only limits local writes, not remote account
+changes. Even status scripts write local audit/state files and may need a
+reviewed permission request; do not silently broaden access to make them run.
 
----
+For **IDE or desktop**, open the same website folder, select the available
+sandbox and approval controls, and use the same plain-language role prompts.
+CLI flags above apply to the CLI. This pack does not register its Claude
+subagents or `/liara-*` commands in these clients.
 
-## Cursor / Windsurf
+### Optional Codex defaults and skill discovery
 
-Point the rules file at the contract rather than duplicating it:
+You may copy the pack's [`.codex/config.toml`](../../.codex/config.toml) into
+your project's `.codex/` if no configuration exists, or merge its three
+settings into an existing file. It defaults to read-only with `on-request`
+approvals and keeps your chosen model. Project configuration loads only for
+trusted projects. Current Codex ignores configuration profiles in project
+files and no longer supports `approval_policy = "untrusted"`; the explicit
+launch commands above replace the pack's former `liara-*` profile examples.
+See the official [configuration reference](https://developers.openai.com/codex/config-reference/).
 
-`.cursor/rules/liara.mdc`
+For automatic **skill** discovery, also copy the complete
+`.claude/skills/liara-ops/` folder to `.agents/skills/liara-ops/` in your
+website repository. Preserve any existing skill at that destination and
+refresh this copy when updating the pack. You can then mention `$liara-ops`.
+Without this optional copy, explicitly ask Codex to read
+`.claude/skills/liara-ops/SKILL.md` before operations. See the official
+[skills guide](https://developers.openai.com/codex/skills/).
+
+Neither the optional configuration nor skill enables the pack's Claude hook
+in Codex. Follow the manual guard procedure below before mutations.
+
+## Cursor and Windsurf
+
+Open the website repository. Both support project instructions in `AGENTS.md`.
+For an explicit editor rule, add the matching file below while preserving
+existing rules; Cursor and Windsurf use different formats.
+
+**Cursor:** `.cursor/rules/liara.mdc`
+
 ```markdown
 ---
 description: Liara operations
 alwaysApply: true
 ---
-Follow @AGENTS.md exactly. Use `sh scripts/liara.sh` only — never a bare
-`liara`. Default to LIARA_ENV=staging. Production writes need a human-granted
-approval. Never ask for or read an API token.
+Before any Liara task, read and follow AGENTS.md and
+.claude/skills/liara-ops/SKILL.md. Read the chosen role in .claude/agents/.
+Use LIARA_ENV=staging sh scripts/liara.sh for CLI operations.
+Leave token entry and approval grants to the human.
 ```
 
-**No hook enforcement.** Treat it as a capable assistant, not a guarded
-operator, and keep production credentials off the machine.
+**Windsurf:** `.windsurf/rules/liara.md`
 
+```markdown
 ---
+trigger: always_on
+---
+Before any Liara task, read and follow AGENTS.md and
+.claude/skills/liara-ops/SKILL.md. Read the chosen role in .claude/agents/.
+Use LIARA_ENV=staging sh scripts/liara.sh for CLI operations.
+Leave token entry and approval grants to the human.
+```
+
+Start a fresh chat and ask it to identify the contract and follow
+`.claude/agents/liara-connect.md` for staging. Verify the rule appears in
+context. These rule files supply instructions; they do not wire the pack's
+command guard. Official references: [Cursor rules](https://cursor.com/docs/context/rules)
+and [Windsurf rules](https://docs.windsurf.com/windsurf/cascade/memories).
 
 ## Aider
 
+From the website repository, load the contract, reference and chosen role as
+read-only context:
+
 ```bash
-aider --read AGENTS.md --read .claude/skills/liara-ops/SKILL.md
+aider --read AGENTS.md --read .claude/skills/liara-ops/SKILL.md \
+  --read .claude/agents/liara-connect.md
 ```
 
-Add to `.aider.conf.yml`:
+Or merge these entries into the existing `read` list in `.aider.conf.yml`:
+
 ```yaml
-read: [AGENTS.md, .claude/skills/liara-ops/SKILL.md]
+read:
+  - AGENTS.md
+  - .claude/skills/liara-ops/SKILL.md
+  - .claude/agents/liara-connect.md
 ```
 
-No hooks. Aider's commit-per-change behaviour pairs well with the "fix = patch"
-rule, since every change is reviewable in git.
-
----
+Ask it to explain the staging connection process. For a different role,
+change the final path. The `--read` flag protects those context files from
+editing; it is not a sandbox for shell commands. The pack installs no Aider
+hook. See the official [Aider options](https://aider.chat/docs/config/options.html).
 
 ## Gemini CLI
 
-Point `GEMINI.md` at the contract:
+Add an explicit import to your website's `GEMINI.md`, preserving its existing
+instructions:
 
 ```markdown
-# GEMINI.md
-Follow AGENTS.md in this repository exactly, including the five rules.
+@./AGENTS.md
+
+Before Liara operations, read .claude/skills/liara-ops/SKILL.md and the
+chosen role in .claude/agents/. Default to staging; token entry and approval
+grants belong to the human.
 ```
 
-No hook enforcement.
+Restart Gemini in the website repository. Use `/memory show` to check the
+contract is loaded, then ask it to follow `.claude/agents/liara-connect.md`.
+The pack installs no Gemini hook. See the official
+[GEMINI.md guide](https://geminicli.com/docs/cli/gemini-md/).
 
----
+## Other coding agents
 
-## Making it safe on a provider without hooks
+Use a local project session with file and POSIX shell access. Add this to
+its project instructions, or send it as the first prompt:
 
-If you must run unguarded, replace enforcement with scope:
+```text
+Read AGENTS.md and .claude/skills/liara-ops/SKILL.md first.
+For this task, follow .claude/agents/liara-connect.md.
+Work from this website repository root and default to staging.
+Use only LIARA_ENV=staging sh scripts/liara.sh for Liara CLI operations.
+Run the command guard before mutations. Leave token entry and approval
+creation to the human. Explain the next step without asking for a token.
+```
 
-1. **Never store production credentials on that machine.** `sh scripts/creds.sh
-   set staging` only. This is the strongest single control available to you,
-   and it needs no tooling.
-2. Enable **read-only mode** on the production app while experimenting:
-   `POST /v1/projects/{id}/read-only/enable`
-3. Use the provider's own sandbox at its most restrictive setting.
-4. Run `sh scripts/test-guard.sh` manually and read the audit log:
-   `cat state/audit.log`
-5. Deploy from CI instead of from the agent — then the token lives in CI and
-   the agent only reads results.
+Change the role path for onboarding, deployment, status, plans, or debugging.
+Ask the client to list what it loaded before operations. A chat without file
+or shell access can explain these instructions but cannot operate the pack.
 
-## Provider-independent by design
+## Manual command guard outside Claude Code
 
-Everything here is portable on purpose:
+The contract requires a guard check before a mutating command. For example,
+after connecting staging and passing preflight, check this fixed command:
 
-| Piece | Format | Depends on a provider? |
-|---|---|---|
-| `AGENTS.md` | Markdown | no |
-| `.claude/agents/*.md` | Markdown + frontmatter | frontmatter ignored elsewhere |
-| `scripts/*.sh` | POSIX sh | no |
-| `.claude/skills/liara-ops/` | Markdown | no |
-| `.claude/settings.json` | JSON | Claude Code only |
-| `.codex/config.toml` | TOML | Codex only |
+```bash
+CMD='LIARA_ENV=staging sh scripts/liara.sh deploy --app my-site-staging --path .'
+printf '{"tool_name":"Bash","tool_input":{"command":"%s"}}' "$CMD" \
+  | sh scripts/guard.sh && eval "$CMD"
+```
 
-If you switch providers, you lose enforcement and keep everything else.
+Replace the example app name with your configured staging app. This JSON
+construction is for the literal command shown; commands containing quotes,
+backslashes or newlines require proper JSON encoding. Only run the exact
+command that passed the guard, and stop if it blocks. A manual check is not
+automatic enforcement of later tool calls.
+
+Use the client's restrictive sandbox and review consequential actions.
+Keep production credentials off environments where the pack's guard is not
+active. Production writes still require the human's single-use approval as
+explained in [Credentials](02-credentials.md); a client permission prompt does
+not replace that approval. After any deploy, run the health verification
+before reporting success.

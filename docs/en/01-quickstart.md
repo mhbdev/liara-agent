@@ -13,7 +13,16 @@ You need:
 - **Node.js 20+** — <https://nodejs.org> (the Liara CLI needs it)
 - **Git Bash** if you are on Windows — it ships with Git for Windows. The
   scripts and the safety hook run under `sh`.
-- **Claude Code** or **Codex CLI** installed
+- A coding agent installed — Claude Code, Codex, Cursor, Windsurf, Aider or
+  Gemini CLI. See [provider setup](04-providers.md).
+
+## Step 0 — install the pack in your website repository
+
+Follow [Install the agents in your own project](00-installation.md) first.
+It explains downloading the pack, copying or merging its files without
+replacing your existing instructions, and activating your coding environment.
+Run every command below from your **website repository root**, not the
+separate source copy of this pack. On Windows, use Git Bash.
 
 ## Step 1 — install the Liara CLI
 
@@ -24,23 +33,26 @@ npm install -g @liara/cli
 Check it:
 
 ```bash
-liara --version
+npm list -g @liara/cli --depth=0
 ```
 
-You should see something like `@liara/cli/9.6.0`. If the command is not found,
+You should see something like `@liara/cli@9.6.0`. If the command is not found,
 Node's global folder is not on your PATH — reinstall Node and reopen the
 terminal.
 
 ## The short version
 
-If you would rather not read the steps, run the one wizard and let it guide you:
+After installing the pack and CLI, **you, the human**, can run the guided
+wizard in a real terminal:
 
 ```bash
 sh scripts/setup.sh
 ```
 
 It does steps 2 and 3 below in order — checks, login, verification, discovery —
-and tells you what to say next. Or chat to the agent instead: **`/liara-login`**.
+and tells you what to say next. In Claude Code you can also use
+**`/liara-login`**. In other coding agents, ask it to follow
+`.claude/agents/liara-connect.md`; token entry stays in your human terminal.
 
 The rest of this page explains what it is doing and why.
 
@@ -50,12 +62,20 @@ The rest of this page explains what it is doing and why.
 sh scripts/setup.sh check
 ```
 
-This verifies the CLI, `curl`, `git`, Node, that the safety hook is wired, that
-secrets are gitignored — and it runs a **self-test of the guard**, proving the
-protections actually fire. Fix anything marked `[FAIL]` before continuing.
+This verifies the CLI, `curl`, `git`, Node, that the hook configuration is
+present, and that secrets are gitignored. It runs guard self-tests too.
+Fix anything marked `[FAIL]` before continuing, then run the full suite:
+
+```bash
+sh scripts/test-guard.sh
+```
+
+These are file and script checks. Confirm your agent actually loaded the
+instructions and hook using the [provider activation steps](04-providers.md).
 
 > Why this matters: on Windows, if `sh` is missing the hook silently does not
-> run, and the agent would be unguarded. The doctor is how you find that out.
+> run, and the agent would be unguarded. Run the checks from the shell your
+> coding agent uses too.
 
 ## Step 3 — connect your Liara account
 
@@ -63,8 +83,8 @@ protections actually fire. Fix anything marked `[FAIL]` before continuing.
 sh scripts/setup.sh connect staging
 ```
 
-Or say "login" to the agent and it will open a terminal tab running exactly
-this, so you can type without leaving the conversation.
+Run this yourself in a real terminal. Saying "login" to the agent starts the
+connection guidance; it must leave token entry to you.
 
 The script tells you where to click. In short:
 
@@ -100,15 +120,22 @@ your live site is a feature. Come back to it in
 ## Step 4 — configure the project
 
 ```bash
-cp env.example .env
-cp liara.json.example liara.json
+[ -e .env ] || cp env.example .env
+[ -e liara.json ] || cp liara.json.example liara.json
 ```
+
+These commands preserve existing configuration. Review the examples for your
+actual app, port and health endpoint; remove example disks or scheduled jobs
+your website does not use. Do not put API tokens in `.env`.
 
 Then let the agent do the rest — in Claude Code:
 
 ```
 /liara-setup
 ```
+
+In Codex or another coding agent, say: "Follow AGENTS.md and
+.claude/agents/liara-onboarding.md to configure this website for staging."
 
 It will ask one question at a time, with a default for every one, so **"I don't
 know" is always a valid answer.** It detects your project type, writes
@@ -129,7 +156,7 @@ Say these in plain language, Persian or English:
 | "which plan should I buy?" / «کدوم پلن؟» | live prices + your real usage |
 | "it's broken, fix it" / «درست کن» | diagnosis with evidence, then a patch |
 
-Or use the commands directly:
+In Claude Code, you can also use the project commands directly:
 
 ```
 /liara-status      /liara-deploy      /liara-plan
@@ -138,9 +165,15 @@ Or use the commands directly:
 
 ## Step 6 — your first deploy
 
+In Claude Code:
+
 ```
 /liara-deploy staging
 ```
+
+In other coding agents, say: "Follow AGENTS.md and
+.claude/agents/liara-deploy.md to deploy to staging and verify it."
+Use the sandbox and manual guard procedure in [provider setup](04-providers.md).
 
 Watch what it does, in this order — and it will not skip a step:
 
@@ -156,13 +189,15 @@ tell you something is live when it is not.
 ## When something goes wrong
 
 - Site down → [05-runbook.md](05-runbook.md)
-- "no credentials" → `sh scripts/creds.sh set staging`
+- "no credentials" → run `sh scripts/setup.sh connect staging` yourself in a
+  real terminal
 - "BLOCKED by scripts/guard.sh" → that is intentional; read the message, it
   names what to do
 - Token rejected → it expired. Make a new one at <https://console.liara.ir/API>
 
 ## Next
 
+- [00-installation.md](00-installation.md) — installing or updating in your own project
 - [02-credentials.md](02-credentials.md) — how credentials are stored, and production
 - [03-agents.md](03-agents.md) — what each agent does
 - [04-providers.md](04-providers.md) — running on Claude Code, Codex, Cursor

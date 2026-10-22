@@ -12,15 +12,42 @@ AI agent — designed for someone who knows nothing about servers.
 
 | | |
 |---|---|
-| 🇬🇧 **English** | [Quickstart](docs/en/01-quickstart.md) → [Credentials](docs/en/02-credentials.md) → [Agents](docs/en/03-agents.md) |
-| 🇮🇷 **فارسی** | [شروع سریع](docs/fa/01-quickstart.md) ← [رمزها](docs/fa/02-credentials.md) ← [ایجنت‌ها](docs/fa/03-agents.md) |
+| 🇬🇧 **English** | [Install in your project](docs/en/00-installation.md) → [Quickstart](docs/en/01-quickstart.md) → [Credentials](docs/en/02-credentials.md) → [Agents](docs/en/03-agents.md) |
+| 🇮🇷 **فارسی** | [نصب در پروژه خودتان](docs/fa/00-installation.md) ← [شروع سریع](docs/fa/01-quickstart.md) ← [رمزها](docs/fa/02-credentials.md) ← [ایجنت‌ها](docs/fa/03-agents.md) |
+
+## Install in your project · نصب در پروژه خودتان
+
+Use the [installation guide](docs/en/00-installation.md) to download the pack
+and copy or merge its files into **your website repository**. It covers first
+installations, existing agent configuration, Windows, and updates. Keep your
+project's README, application files, and existing rules.
+
+برای دریافت پکیج و کپی یا ادغام فایل‌ها در **مخزن وب‌سایت خودتان**،
+[راهنمای نصب](docs/fa/00-installation.md) را دنبال کنید. نصب اول، تنظیمات
+موجود، ویندوز و به‌روزرسانی در آن توضیح داده شده است.
+
+| Coding environment | How to activate the installed pack |
+|---|---|
+| **Claude Code** | Project agents, commands, skill, and guard hook — [setup](docs/en/04-providers.md#claude-code). |
+| **Codex CLI / IDE / desktop** | Project `AGENTS.md`, role files, optional skill, and sandbox settings — [setup](docs/en/04-providers.md#codex-cli-ide-and-desktop). |
+| **Cursor / Windsurf** | Project instructions and editor rules — [setup](docs/en/04-providers.md#cursor-and-windsurf). |
+| **Aider / Gemini CLI / others** | Read-only context files or project instruction imports — [setup](docs/en/04-providers.md#aider). |
+
+After importing the pack, run these **from your website repository**, in a
+human terminal (Git Bash on Windows):
 
 ```bash
-npm install -g @liara/cli     # 1. install the Liara CLI
-sh scripts/setup.sh           # 2. one guided wizard: checks, login, discovery
+npm install -g @liara/cli
+sh scripts/setup.sh check
+sh scripts/test-guard.sh
+sh scripts/setup.sh           # human-run wizard: checks, login, discovery
 ```
 
-Or just chat to it — in Claude Code: **`/liara-login`**, then `/liara-setup`.
+In Claude Code: **`/liara-login`**, then `/liara-setup`. In other coding agents:
+ask it to follow `.claude/agents/liara-connect.md`, then
+`.claude/agents/liara-onboarding.md`. The token step always belongs to you in
+a real terminal. These project commands are for coding agents with shell
+access; an ordinary browser chat cannot run the pack.
 
 The wizard is the only place you type anything secret, and your typing is
 hidden. Everything else you can do by talking.
@@ -62,8 +89,10 @@ rest. The agent proves the credential works by *using* it, never by reading it.
 Anything in a model's context can end up in a log — the only token that cannot
 leak that way is one that was never there.
 
-**2. Guardrails are structural, not instructions.**
-`scripts/guard.sh` runs before every shell command. `scripts/approve.sh` issues
+**2. The pack includes command guards and human approvals.**
+With the supplied Claude Code hook active, `scripts/guard.sh` checks Bash tool
+calls. Other environments require manual guard invocation and their own
+sandbox settings. `scripts/approve.sh` issues
 single-use, 15-minute approvals that **the agent cannot create for itself**.
 Every published incident involving an agent and production infrastructure came
 from prompt-level guardrails — the agent was told not to, and then did.
@@ -81,11 +110,11 @@ the risk.
 AGENTS.md              the binding contract — read by Codex and Claude Code
 CLAUDE.md              Claude Code specifics
 .claude/
-  agents/              5 subagent definitions
-  commands/            6 slash commands
+  agents/              6 subagent definitions
+  commands/            7 slash commands
   skills/liara-ops/    verified Liara CLI + API reference
   settings.json        guard hook + path permissions
-.codex/config.toml     Codex profiles (read-only / deploy / prod)
+.codex/config.toml     optional Codex defaults (read-only, interactive approvals)
 scripts/
   setup.sh             THE front door: check / connect / verify / discover
   doctor.sh            environment check + guard self-test
@@ -97,8 +126,8 @@ scripts/
   health.sh            liveness, latency, TLS
   plan-advise.sh       live plan + usage data
   test-guard.sh        guard regression suite
-tests/guard-cases.txt  48 cases: what must be blocked and allowed
-docs/en/ docs/fa/      7 documents each, bilingual
+tests/guard-cases.txt  cases: what must be blocked and allowed
+docs/en/ docs/fa/      installation + 7 operating guides each, bilingual
 state/                 audit log, health log, incident records (gitignored)
 ```
 
@@ -106,15 +135,16 @@ state/                 audit log, health log, incident records (gitignored)
 
 ## Provider support · پشتیبانی سرویس‌ها
 
-| | Claude Code | Codex | Cursor | Aider | Gemini |
+| Pack integration | Claude Code | Codex | Cursor / Windsurf | Aider | Gemini |
 |---|---|---|---|---|---|
-| Agent roles | **subagents** | profiles | prompt | prompt | prompt |
-| Slash commands | **yes** | no | no | no | no |
-| **Guard enforced automatically** | **yes** | no | no | no | no |
+| Supplied role files | **subagents** | read by path | read by path | `--read` | read by path |
+| Supplied `/liara-*` commands | **yes** | use plain prompts | use plain prompts | use plain prompts | use plain prompts |
+| **Pack's guard wired automatically** | **with settings active** | no | no | no | no |
 
-**The guard hook runs automatically only on Claude Code.** Elsewhere the scripts
-work but enforcement does not — use the provider's sandbox and keep production
-credentials off that machine. Details: [English](docs/en/04-providers.md) ·
+**The supplied guard hook is wired only for Claude Code.** Other clients may
+have their own hooks, but this pack does not install those integrations.
+Use the provider's sandbox and keep production credentials off that machine.
+Details: [English](docs/en/04-providers.md) ·
 [فارسی](docs/fa/04-providers.md)
 
 ---
