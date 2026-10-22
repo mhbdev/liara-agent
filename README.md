@@ -137,11 +137,3 @@ Read [docs/en/07-security.md](docs/en/07-security.md) before giving any agent
 production access. It lists two guard bypasses currently pending a patch, the
 `--api-token` process-list exposure, and the Windows fail-open behaviour —
 honestly, with mitigations.
-
----
-
-## Related
-
-[AGENT-IDEAS.md](AGENT-IDEAS.md) — 20 researched options for deploy and SRE
-agents, with risk, effort and beginner-fit ratings. This pack implements ideas
-1, 3, 5, 7, 8, 9, 13, 14, 16 and 20 from that list.
