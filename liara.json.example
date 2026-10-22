@@ -1,0 +1,21 @@
+{
+  "app": "my-site-staging",
+  "port": 3000,
+  "build": { "location": "iran" },
+
+  "healthCheck": {
+    "command": "CMD curl --fail http://localhost:3000/api/health || exit 1",
+    "interval": 30,
+    "timeout": 15,
+    "retries": 2,
+    "startPeriod": 5
+  },
+
+  "disks": [
+    { "name": "uploads", "mountTo": "/app/uploads" }
+  ],
+
+  "cron": [
+    "0 1 * * * cd $ROOT && node scripts/nightly.js >> /dev/null 2>&1"
+  ]
+}

@@ -1,0 +1,28 @@
+# ── credentials: never commit ────────────────────────────────────────────
+.liara/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── agent state (local; may contain log excerpts) ────────────────────────
+state/
+!state/incidents/.gitkeep
+
+# ── normal ───────────────────────────────────────────────────────────────
+node_modules/
+dist/
+build/
+.next/
+out/
+*.log
+.DS_Store
+Thumbs.db
+__pycache__/
+venv/
+.vscode/
+.idea/
+
+# liara.json IS committed — it may hold an app name but must never hold
+# secrets. Secrets go through `liara env set`, never into this file.

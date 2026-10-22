@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(sh scripts/doctor.sh)",
+      "Bash(sh scripts/creds.sh status)",
+      "Bash(sh scripts/approve.sh list)",
+      "Bash(sh scripts/health.sh:*)",
+      "Bash(sh scripts/preflight.sh)",
+      "Bash(sh scripts/plan-advise.sh:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Read(.liara/**)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Edit(.liara/**)",
+      "Edit(scripts/guard.sh)",
+      "Edit(scripts/approve.sh)",
+      "Edit(.claude/settings.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/guard.sh\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
