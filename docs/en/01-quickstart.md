@@ -2,8 +2,9 @@
 
 # 1. Quickstart — from nothing to a working agent
 
-Fifteen minutes. You do not need to understand servers, Docker, or DNS. Each
-step says what it does and what happens if it fails.
+For the shortest path, use the [one-command installer](00-installation.md),
+restart your coding agent, and ask it to help you connect Liara. This page
+explains the remaining steps if you want to follow them yourself.
 
 ## Before you start
 
@@ -19,8 +20,8 @@ You need:
 ## Step 0 — install the pack in your website repository
 
 Follow [Install the agents in your own project](00-installation.md) first.
-It explains downloading the pack, copying or merging its files without
-replacing your existing instructions, and activating your coding environment.
+The installer downloads the pack and merges project instructions and settings
+for you. You do not need to copy files or choose a provider first.
 Run every command below from your **website repository root**, not the
 separate source copy of this pack. On Windows, use Git Bash.
 

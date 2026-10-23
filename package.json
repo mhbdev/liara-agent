@@ -1,0 +1,33 @@
+{
+  "name": "liara-agent-pack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Install Liara operations agents in an existing website project",
+  "type": "module",
+  "bin": {
+    "liara-agent": "bin/install.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tests/install.test.mjs"
+  },
+  "files": [
+    "bin/install.mjs",
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".claude/agents/",
+    ".claude/commands/",
+    ".claude/skills/liara-ops/",
+    ".claude/settings.json",
+    ".codex/config.toml",
+    "scripts/*.sh",
+    "scripts/lib/*.sh",
+    "tests/guard-cases.txt",
+    "docs/",
+    "env.example",
+    "liara.json.example",
+    "OPERATIONS.template.md"
+  ]
+}

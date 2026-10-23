@@ -6,6 +6,11 @@ First [install the pack in your website repository](00-installation.md).
 All paths and commands below are relative to that repository's root. Start or
 restart your coding agent there after importing the files.
 
+The [one-command installer](00-installation.md) already creates the client
+files below and merges Claude settings. Start with the shared connection
+prompt in that guide. The rest of this page is a reference for checking or
+customizing an installation; manual configuration is not a prerequisite.
+
 These instructions describe **the integrations supplied by this pack**, not
 every feature a provider offers. The same six role files and scripts can be
 used elsewhere, but their Claude metadata does not automatically create
@@ -25,12 +30,12 @@ production access, including when using Claude Code.
 
 ## Claude Code
 
-1. Install or merge `CLAUDE.md`, all of `.claude/`, and the common scripts as
-   described in the installation guide. Copying only `.claude/agents/` omits
-   the hook and its permissions.
+1. Run the installer from your website folder. It adds `CLAUDE.md`, all of
+   `.claude/`, and the common scripts, keeping existing project instructions.
 2. If your project already has `.claude/settings.json`, preserve its entries
    while merging the pack's `hooks.PreToolUse` and permission arrays. Keep the
-   guard command `sh "$CLAUDE_PROJECT_DIR/scripts/guard.sh"` intact.
+   guard command `sh "$CLAUDE_PROJECT_DIR/scripts/guard.sh"` intact. The
+   installer performs this merge automatically.
 3. Start a fresh Claude Code session in the website repository. Follow any
    project trust or hook review prompts, then ask it to list the six
    `liara-*` roles and explain the contract in `AGENTS.md`.
@@ -103,7 +108,8 @@ files and no longer supports `approval_policy = "untrusted"`; the explicit
 launch commands above replace the pack's former `liara-*` profile examples.
 See the official [configuration reference](https://developers.openai.com/codex/config-reference/).
 
-For automatic **skill** discovery, also copy the complete
+The installer sets up automatic **skill** discovery in
+`.agents/skills/liara-ops/` for you. For a manual installation, copy the complete
 `.claude/skills/liara-ops/` folder to `.agents/skills/liara-ops/` in your
 website repository. Preserve any existing skill at that destination and
 refresh this copy when updating the pack. You can then mention `$liara-ops`.
@@ -179,6 +185,9 @@ hook. See the official [Aider options](https://aider.chat/docs/config/options.ht
 
 Add an explicit import to your website's `GEMINI.md`, preserving its existing
 instructions:
+
+The installer adds this import automatically; use the example below only
+when configuring it manually.
 
 ```markdown
 @./AGENTS.md

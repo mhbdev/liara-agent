@@ -17,40 +17,42 @@ AI agent — designed for someone who knows nothing about servers.
 
 ## Install in your project · نصب در پروژه خودتان
 
-Use the [installation guide](docs/en/00-installation.md) to download the pack
-and copy or merge its files into **your website repository**. It covers first
-installations, existing agent configuration, Windows, and updates. Keep your
-project's README, application files, and existing rules.
+**1. Open a terminal in your website's folder.** You need Node.js 20+, Git,
+and a coding agent such as Claude Code or Codex.
 
-برای دریافت پکیج و کپی یا ادغام فایل‌ها در **مخزن وب‌سایت خودتان**،
-[راهنمای نصب](docs/fa/00-installation.md) را دنبال کنید. نصب اول، تنظیمات
-موجود، ویندوز و به‌روزرسانی در آن توضیح داده شده است.
+**۱. ترمینال را در پوشه وب‌سایت خودتان باز کنید.** به Node.js نسخه ۲۰ یا
+بالاتر، Git و یک ایجنت کدنویسی مثل Claude Code یا Codex نیاز دارید.
 
-| Coding environment | How to activate the installed pack |
-|---|---|
-| **Claude Code** | Project agents, commands, skill, and guard hook — [setup](docs/en/04-providers.md#claude-code). |
-| **Codex CLI / IDE / desktop** | Project `AGENTS.md`, role files, optional skill, and sandbox settings — [setup](docs/en/04-providers.md#codex-cli-ide-and-desktop). |
-| **Cursor / Windsurf** | Project instructions and editor rules — [setup](docs/en/04-providers.md#cursor-and-windsurf). |
-| **Aider / Gemini CLI / others** | Read-only context files or project instruction imports — [setup](docs/en/04-providers.md#aider). |
-
-After importing the pack, run these **from your website repository**, in a
-human terminal (Git Bash on Windows):
+**2. Run one command · ۲. یک دستور اجرا کنید:**
 
 ```bash
-npm install -g @liara/cli
-sh scripts/setup.sh check
-sh scripts/test-guard.sh
-sh scripts/setup.sh           # human-run wizard: checks, login, discovery
+npx --yes github:mhbdev/liara-agent
 ```
 
-In Claude Code: **`/liara-login`**, then `/liara-setup`. In other coding agents:
-ask it to follow `.claude/agents/liara-connect.md`, then
-`.claude/agents/liara-onboarding.md`. The token step always belongs to you in
-a real terminal. These project commands are for coding agents with shell
-access; an ordinary browser chat cannot run the pack.
+The installer prepares **Claude Code, Codex, Cursor, Windsurf, Aider and
+Gemini** together, merging existing instructions and Claude settings for you.
+Your website code, dependencies and credentials stay in place.
 
-The wizard is the only place you type anything secret, and your typing is
-hidden. Everything else you can do by talking.
+نصب‌کننده همه محیط‌های بالا را با هم آماده می‌کند و دستورالعمل‌ها و تنظیمات
+Claude را با موارد فعلی ادغام می‌کند. کد، وابستگی‌ها و رمزهای وب‌سایت شما حفظ می‌شوند.
+
+**3. Restart your coding agent in that folder and say:**
+
+> Help me connect Liara and configure this project for staging.
+
+**۳. ایجنت را در همان پوشه دوباره باز کنید و بگویید:**
+
+> کمک کن حساب لیارا را وصل کنم و این پروژه را برای محیط آزمایشی تنظیم کنم.
+
+The agent guides the rest. Enter your Liara token only in your own terminal,
+never in chat. In Claude Code, `/liara-login` also starts the connection guide.
+
+ایجنت بقیه مراحل را راهنمایی می‌کند. توکن لیارا را فقط در ترمینال خودتان وارد
+کنید، نه در چت. در ویندوز، ابزارهای لیارا با Git Bash اجرا می‌شوند.
+
+More options, preview and troubleshooting: [English](docs/en/00-installation.md) ·
+[فارسی](docs/fa/00-installation.md). Installation adds project files; account
+connection and deployment checks come afterward.
 
 ---
 
@@ -109,6 +111,8 @@ the risk.
 ```
 AGENTS.md              the binding contract — read by Codex and Claude Code
 CLAUDE.md              Claude Code specifics
+bin/install.mjs        one-command project installer (Node.js, no dependencies)
+package.json           npx entry point + installer tests
 .claude/
   agents/              6 subagent definitions
   commands/            7 slash commands
